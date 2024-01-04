@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: exemple-prometheus-rules
+spec:
+  groups:
+    - name: exemple-rules
+      rules:
+        - alert: APIMonitor
+          annotations:
+            description: |
+              Le endpoint live du service pgrest ne repond plus correctement
+            summary: 'PGRest live endpoint fail'
+          expr: >
+            probe_success{target="pgrest-live"} == 0
+          labels:
+            refapp: demo
+            severity: critical

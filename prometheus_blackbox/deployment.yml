@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: prometheus-blackbox
+  name: blackbox-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: prometheus-blackbox
+  template:
+    metadata:
+      labels:
+        component: prometheus-blackbox
+    spec:
+      containers:
+        - args:
+            - '--config.file'
+            - /opt/bitnami/blackbox-exporter/conf/config.yml
+          image: 'bitnami/blackbox-exporter:0.24.0'
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /-/healthy
+              port: blackbox-http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: blackbox-exporter
+          ports:
+            - containerPort: 9115
+              name: blackbox-http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /-/healthy
+              port: blackbox-http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          startupProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /-/healthy
+              port: blackbox-http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /opt/bitnami/blackbox-exporter/conf/
+              name: config-volume
+            - mountPath: /opt/bitnami/blackbox-exporter/token/
+              name: token-volume
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: blackbox-exporter
+          name: config-volume
+        - name: token-volume
+          secret:
+            defaultMode: 420
+            secretName: blackbox-exporter-token

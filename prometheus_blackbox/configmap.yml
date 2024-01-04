@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    component: prometheus-blackbox
+  name: blackbox-exporter
+data:
+  config.yml: |-
+    modules:
+      http_2xx: # Nom du module à fournir dans la requête pour blackbox, /probe?target=www.google.fr&module=http_2xx
+        prober: http
+        http:
+          preferred_ip_protocol: "ip4"
+          
+      # Configure une authentification par token JWT
+      http_2xx_with_auth: # Nom du module à fournir dans la requête pour blackbox, /probe?target=www.google.fr&module=http_2xx_with_auth
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          method: GET
+          follow_redirects: true
+          fail_if_ssl: false
+          fail_if_not_ssl: false
+          tls_config:
+            insecure_skip_verify: true
+          preferred_ip_protocol: "ip4" # defaults to "ip6"
+          ip_protocol_fallback: false  # no fallback to "ip6"
+          authorization:
+            credentials_file: "/opt/bitnami/blackbox-exporter/token//credential.token"
+
+      # Configure les status_code valide quand la sonde n'est pas authentifiée
+      http_4xx_no_auth: # Nom du module à fournir dans la requête pour blackbox, /probe?target=www.google.fr&module=http_4xx_no_auth
+        prober: http
+        http:
+          method: GET
+          valid_status_codes: [400,401]  # 400 : bad auth, 401 : no auth
+          preferred_ip_protocol: "ip4"
+          ip_protocol_fallback: false
+          follow_redirects: true
+          fail_if_ssl: false
+          fail_if_not_ssl: false
+          tls_config:
+            insecure_skip_verify: true
+          
+

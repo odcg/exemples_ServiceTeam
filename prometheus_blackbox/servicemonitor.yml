@@ -1,0 +1,79 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    component: prometheus-blackbox
+  name: blackbox-exporter
+spec:
+  endpoints:
+    - interval: 30s
+      params: # Paramètre dans la requête http, ceux que blackbox attend pour lancer une sonde
+        module:
+          - http_2xx # quel module blackbox doit utiliser pour gérer la requête et la réponse ? (voir configmap)
+        target:
+          - 'http://monurl:3001/live' # quel url blackbox doit essayer
+      path: /probe # path pour appeler blackbox et lui dire de sonder une url
+      port: blackbox-http # Sur quel port appeler blackbox (peut être un nom ou un entier)
+      scheme: http
+      scrapeTimeout: 30s
+      metricRelabelings: # Permet de modifier les labels exportés
+        - action: replace
+          replacement: 'http://monurl:3001/live'
+          sourceLabels:
+            - instance
+          targetLabel: instance
+        - action: replace
+          replacement: pgrest-live
+          sourceLabels:
+            - target
+          targetLabel: target
+    - interval: 30s
+      params:
+        module:
+          - http_2xx_with_auth
+        target:
+          - http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+      path: /probe
+      port: blackbox-http
+      scheme: http
+      scrapeTimeout: 30s
+      metricRelabelings:
+        - action: replace
+          replacement: http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          sourceLabels:
+            - instance
+          targetLabel: instance
+        - action: replace
+          replacement: pgrest-request-valid
+          sourceLabels:
+            - target
+          targetLabel: target
+    - interval: 30s
+      params:
+        module:
+          - http_4xx_no_auth
+        target:
+          - http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+      path: /probe
+      port: blackbox-http
+      scheme: http
+      scrapeTimeout: 30s
+      metricRelabelings:
+        - action: replace
+          replacement: http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          sourceLabels:
+            - instance
+          targetLabel: instance
+        - action: replace
+          replacement: pgrest-request-no-auth
+          sourceLabels:
+            - target
+          targetLabel: target
+
+  # Sélection du service que lequel est branché le pod blackbox
+  namespaceSelector: 
+    matchNames:
+      - monnamespace
+  selector:
+    matchLabels:
+      component: prometheus-blackbox
