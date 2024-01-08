@@ -69,8 +69,10 @@ probe_ip_protocol 4
 probe_success 1
 ```
 
-Diagramme de séquence:
+*Diagramme de séquence*
+
 ![diagramme](blackbox_exporter.png)
+
 
 ### Urls
 Les urls suivantes sont disponibles:
