@@ -1,7 +1,7 @@
 # Blackbox
 [Prometheus blackbox](https://github.com/prometheus/blackbox_exporter) est un exporter prometheus spécialiser pour interroger des urls et retouner des informations de cette interrogation au format prometheus (si l'interrogation s'est bien déroulé, combien de temps pour effectuer la requête, le code de retour http, etc...).
 
-Ce dossier contient un exemple de configuration pour un déploiment sur kubernetes (example basé sur l'écoute d'un service postgrest).
+Ce dossier contient un exemple de configuration pour un déploiment sur kubernetes (exemple basé sur l'écoute d'un service postgrest).
 
 ## Fonctionnement
 Blackbox a besoin d'une target (aka une url), optionnellement un module (comment effectuer la requête et traier la réponse du serveur - par défaut les réponses HTTP 200 sont valides).
