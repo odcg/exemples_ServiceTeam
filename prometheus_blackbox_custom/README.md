@@ -12,7 +12,7 @@ Par défaut, blackbox écoute sur le port 9115
 curl http://blackbox:9115/probe?target=http://monurl/live
 ```
 
-La métrique la plus intéressante est probe_success, qui retourne si l'interrogation de l'url a réussi d'après le module fourni.
+La métrique la plus intéressante est probe_success, qui retourne 1 si l'interrogation de l'url a réussi d'après le module fourni.
 ```
 # HELP probe_dns_lookup_time_seconds Returns the time taken for probe dns lookup in seconds
 # TYPE probe_dns_lookup_time_seconds gauge
