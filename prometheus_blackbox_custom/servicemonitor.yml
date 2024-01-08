@@ -11,14 +11,14 @@ spec:
         module:
           - http_2xx # quel module blackbox doit utiliser pour gérer la requête et la réponse ? (voir configmap)
         target:
-          - 'http://monurl:3001/live' # quel url blackbox doit essayer
+          - 'http://pgrest:3001/live' # quel url blackbox doit essayer
       path: /probe # path pour appeler blackbox et lui dire de sonder une url
       port: blackbox-http # Sur quel port appeler blackbox (peut être un nom ou un entier)
       scheme: http
       scrapeTimeout: 30s
       metricRelabelings: # Permet de modifier les labels exportés
         - action: replace
-          replacement: 'http://monurl:3001/live'
+          replacement: 'http://pgrest:3001/live'
           sourceLabels:
             - instance
           targetLabel: instance
@@ -32,14 +32,14 @@ spec:
         module:
           - http_2xx_with_auth
         target:
-          - http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          - http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
       path: /probe
       port: blackbox-http
       scheme: http
       scrapeTimeout: 30s
       metricRelabelings:
         - action: replace
-          replacement: http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          replacement: http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
           sourceLabels:
             - instance
           targetLabel: instance
@@ -53,14 +53,14 @@ spec:
         module:
           - http_4xx_no_auth
         target:
-          - http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          - http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
       path: /probe
       port: blackbox-http
       scheme: http
       scrapeTimeout: 30s
       metricRelabelings:
         - action: replace
-          replacement: http://monurl:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          replacement: http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
           sourceLabels:
             - instance
           targetLabel: instance

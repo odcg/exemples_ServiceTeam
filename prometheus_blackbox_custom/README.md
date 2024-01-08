@@ -1,7 +1,7 @@
 # Blackbox
 [Prometheus blackbox](https://github.com/prometheus/blackbox_exporter) est un exporter prometheus spécialiser pour interroger des urls et retouner des informations de cette interrogation au format prometheus (si l'interrogation s'est bien déroulé, combien de temps pour effectuer la requête, le code de retour http, etc...).
 
-Ce dossier contient un exemple de configuration pour un déploiment sur kubernetes.
+Ce dossier contient un exemple de configuration pour un déploiment sur kubernetes (exemple basé sur l'écoute d'un service postgrest).
 
 ## Fonctionnement
 Blackbox a besoin d'une target (aka une url), optionnellement un module (comment effectuer la requête et traier la réponse du serveur - par défaut les réponses HTTP 200 sont valides).
@@ -12,7 +12,7 @@ Par défaut, blackbox écoute sur le port 9115
 curl http://blackbox:9115/probe?target=http://monurl/live
 ```
 
-La métrique la plus intéressante est probe_success, qui retourne si l'interrogation de l'url a réussi d'après le module fourni.
+La métrique la plus intéressante est probe_success, qui retourne 1 si l'interrogation de l'url a réussi d'après le module fourni.
 ```
 # HELP probe_dns_lookup_time_seconds Returns the time taken for probe dns lookup in seconds
 # TYPE probe_dns_lookup_time_seconds gauge
@@ -58,6 +58,9 @@ probe_ip_protocol 4
 # TYPE probe_success gauge
 probe_success 1
 ```
+
+Diagramme de séquence:
+![diagramme](blackbox_exporter.png)
 
 ### Urls
 Les urls suivantes sont disponibles:
