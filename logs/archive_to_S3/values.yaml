@@ -1,0 +1,60 @@
+
+vector:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory:  100Mi
+  customConfig:
+    data_dir: /vector-data-dir
+    api:
+      enabled: true
+      address: 127.0.0.1:8686
+      playground: false
+    sources:
+      internal_metrics:
+        type: internal_metrics
+
+      # Mets en place un serveur http (port 8080) pour recevoir les logs
+      http_server:
+        type: http_server
+        address: 0.0.0.0:8080
+      
+      # Scrap un kafka comme source de données
+      kafka:
+        type: kafka
+        bootstrap_servers: <kafka.svc>:9092
+        group_id: <groupd_id>
+        topics:
+          - <topic kafka>
+
+    sinks:
+      # Exporte les métriques internes de vector au format prometheus
+      prom_exporter:
+        type: prometheus_exporter
+        inputs: [internal_metrics]
+        address: 0.0.0.0:9090
+      
+      # Archive les logs du serveur http vers un S3
+      aws_s3_out:
+        type: "aws_s3"
+        inputs: # Choix des inputs (=> clé définie dans sources)
+        - http_server
+        endpoint: <Endpoint S3>
+        bucket: "<bucket S3>"
+        region: "eu-west-1" # Avec minio, utiliser la région eu-west-1 (ou activer le mode debug en cas de problème)
+        compression: "gzip"
+        encoding:
+          codec: "raw_message"
+        auth:
+          access_key_id: "<AK>"
+          secret_access_key: "<SK>"
+        key_prefix: "monprojet/monnamespace/%Y/%m/%d/" # Permet de regrouper les logs dans des dossiers par jour
+        batch:
+          max_bytes: 1048576 # 1 Mo en octets
+          timeout_secs: 60 # 1 minute en secondes
+        tags: # Ajoute des tags sur les objets S3, optionnel
+          Classification: confidential
+          Project: monprojet

@@ -1,0 +1,55 @@
+
+vector:
+  # Activation du mode debug
+  env:
+    - name: VECTOR_LOG
+      value: "debug"
+
+  # Ressources du pod, à définir en fonction de la volumétrie
+  # Voir la page suivante: https://vector.dev/docs/setup/going-to-prod/sizing/
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory:  100Mi
+  customConfig:
+    data_dir: /vector-data-dir
+    api:
+      enabled: true
+      address: 127.0.0.1:8686
+      playground: false
+    sources:
+      internal_metrics:
+        type: internal_metrics
+
+      # Mets en place un serveur http pour recevoir les logs
+      http_server:
+        type: http_server
+        address: 0.0.0.0:8080
+      
+      # Scrap un kafka comme source de données
+      kafka:
+        type: kafka
+        bootstrap_servers: <kafka.svc>:9092
+        group_id: <groupd_id>
+        topics:
+          - <topic kafka>
+
+    sinks:
+      # Exporte les métriques internes de vector au format prometheus
+      prom_exporter:
+        type: prometheus_exporter
+        inputs: [internal_metrics]
+        address: 0.0.0.0:9090
+      
+      # Export des logs en stdout
+      stdout:
+        type: console
+        inputs: 
+        - http_server
+        - kafka
+        encoding:
+          codec: "raw_message"
+      
