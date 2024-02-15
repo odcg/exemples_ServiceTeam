@@ -32,14 +32,14 @@ spec:
         module:
           - http_2xx_with_auth
         target:
-          - http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          - http://pgrest:3000/test?champ1=eq.value1&limit=10
       path: /probe
       port: blackbox-http
       scheme: http
       scrapeTimeout: 30s
       metricRelabelings:
         - action: replace
-          replacement: http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          replacement: http://pgrest:3000/test?champ1=eq.value1&limit=10
           sourceLabels:
             - instance
           targetLabel: instance
@@ -53,14 +53,14 @@ spec:
         module:
           - http_4xx_no_auth
         target:
-          - http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          - http://pgrest:3000/test?champ1=eq.value1&limit=10
       path: /probe
       port: blackbox-http
       scheme: http
       scrapeTimeout: 30s
       metricRelabelings:
         - action: replace
-          replacement: http://pgrest:3000/identites?prenoms_officiels_q=ilike.Astérix&limit=10
+          replacement: http://pgrest:3000/test?champ1=eq.value1&limit=10
           sourceLabels:
             - instance
           targetLabel: instance

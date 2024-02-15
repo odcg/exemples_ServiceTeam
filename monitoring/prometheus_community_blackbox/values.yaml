@@ -73,13 +73,13 @@ prometheus-blackbox-exporter:
       scrapeTimeout: 15s
       module: http_2xx
     - name: pgrest-request-valid
-      url: http://pgrest:3000/identites?prenoms_officiels=ilike.Astérix&limit=10
+      url: http://pgrest:3000/test?champ1=eq.value1&limit=10
       labels: {}
       interval: 15s
       scrapeTimeout: 15s
       module: http_2xx_with_auth
     - name: pgrest-request-no-auth
-      url: http://pgrest:3000/identites?prenoms_officiels=ilike.Astérix&limit=10
+      url: http://pgrest:3000/test?champ1=eq.value1&limit=10
       labels: {}
       interval: 15s
       scrapeTimeout: 15s
