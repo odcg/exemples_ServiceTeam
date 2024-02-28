@@ -1,0 +1,117 @@
+# Exemple de transformer des logs en métriques exposées au format prometheus par vector
+# Dans cet exemple, on veut compter le nombre d'appel à l'API par utilisateur
+# La ligne de log est du apache combined
+# 127.0.0.1 bob frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "http://www.seniorinfomediaries.com/vertical/channels/front-end/bandwidth" "Mozilla/5.0 (X11; Linux i686; rv:5.0) Gecko/1945-10-12 Firefox/37.0"
+# Parsé en:
+# {
+#   "agent": "Mozilla/5.0 (X11; Linux i686; rv:5.0) Gecko/1945-10-12 Firefox/37.0",
+#   "host": "127.0.0.1",
+#   "identity": "bob",
+#   "message": "GET /apache_pb.gif HTTP/1.0",
+#   "method": "GET",
+#   "path": "/apache_pb.gif",
+#   "protocol": "HTTP/1.0",
+#   "referrer": "http://www.seniorinfomediaries.com/vertical/channels/front-end/bandwidth",
+#   "size": 2326,
+#   "status": 200,
+#   "timestamp": "2000-10-10T20:55:36Z",
+#   "user": "frank"
+# }
+
+
+vector:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory:  100Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+  extraVolumes:
+  - name: aws-creds
+    secret:
+      secretName: aws-log-archive
+  extraVolumeMounts:
+  - name: aws-creds
+    mountPath: /var/aws/
+  customConfig:
+    data_dir: /vector-data-dir
+    api:
+      enabled: true
+      address: 127.0.0.1:8686
+      playground: false
+    sources:
+      internal_metrics:
+        type: internal_metrics
+
+      # Mets en place un serveur http (port 8080) pour recevoir les logs
+      http_server:
+        type: http_server
+        address: 0.0.0.0:8080
+    transforms:
+      remap: # Parse les logs reçus (format json) pour ne garder que le payload sans toutes les informations ajoutées par vector
+        type: remap
+        inputs:
+          - http_server
+        source: >-
+          . =  parse_json!(.message)
+      parse_pgrest_log: 
+        # Check si le log reçu correspond est émis par le pod qui contient un label component:postgrest
+        # Si c'est le cas, parse la clé message qui est au format apache combined
+        type: remap
+        inputs:
+          - remap # Fait appel au transform précédent
+        source: >-
+          component, err = string(.kubernetes.labels.component)
+
+          if err != null {
+            abort
+          }
+
+          if !contains(component, "postgrest") {
+              abort
+          }
+
+          . = parse_apache_log!(.message, "combined")
+      pgrest_log_to_metrics:
+        ## Transforme le log en métrique, ici compter le nombre de requête par utilisateur
+        type: log_to_metric
+        inputs:
+          - parse_pgrest_log # Fait appel au transform précédent
+        metrics:
+          - type: counter
+            field: user
+            name: response_total
+            namespace: tcnp
+            tags:
+              user: "{{ `{{user}}` }}"
+    sinks:
+      # Exporte les métriques internes de vector au format prometheus
+      prom_exporter:
+        type: prometheus_exporter
+        inputs:
+        - internal_metrics
+        - pgrest_log_to_metrics # Ajout du dernier transform afin d'avoir la métrique exposée au format prometheus
+        address: 0.0.0.0:9090
+      
+      # Archive les logs du serveur http vers un S3
+      aws_s3_out:
+        type: "aws_s3"
+        inputs: # Choix des inputs (=> clé définie dans sources)
+        - http_server
+        endpoint: <Endpoint S3>
+        bucket: "<bucket S3>"
+        region: "eu-west-1" # Avec minio, utiliser la région eu-west-1 (ou activer le mode debug en cas de problème)
+        compression: "gzip"
+        encoding:
+          codec: "raw_message"
+        key_prefix: "monprojet/monnamespace/%Y/%m/%d/" # Permet de regrouper les logs dans des dossiers par jour
+        batch:
+          max_bytes: 1048576 # 1 Mo en octets
+          timeout_secs: 60 # 1 minute en secondes
+        tags: # Ajoute des tags sur les objets S3, optionnel
+          Classification: confidential
+          Project: monprojet
