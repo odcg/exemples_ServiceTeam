@@ -7,6 +7,16 @@ vector:
     limits:
       cpu: 100m
       memory:  100Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+  extraVolumes:
+  - name: aws-creds
+    secret:
+      secretName: aws-log-archive
+  extraVolumeMounts:
+  - name: aws-creds
+    mountPath: /var/aws/
   customConfig:
     data_dir: /vector-data-dir
     api:
@@ -48,9 +58,6 @@ vector:
         compression: "gzip"
         encoding:
           codec: "raw_message"
-        auth:
-          access_key_id: "<AK>"
-          secret_access_key: "<SK>"
         key_prefix: "monprojet/monnamespace/%Y/%m/%d/" # Permet de regrouper les logs dans des dossiers par jour
         batch:
           max_bytes: 1048576 # 1 Mo en octets
