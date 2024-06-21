@@ -3,7 +3,130 @@ Ce projet fournit un exemple d'utilisation de [SOPS](https://github.com/getsops/
 
 Cloud PI utilise l'algorithme [AGE](https://age-encryption.org/) pour chiffrer/déchiffrer les données sensibles et la CRD [SopsSecret](https://github.com/isindir/sops-secrets-operator)
 
-## Arborescence
+## Installation
+
+### SOPS
+
+L'installation de SOPS se fait en suivant les instructions du site : [https://github.com/getsops/sops](https://github.com/getsops/sops). Sous Windows, l'installation peut se faire via l'utilitaire chocolatey : 
+
+```bash
+choco install sops
+```
+
+### AGE
+
+Le format de clé utilisé sur CPiN est age [https://github.com/FiloSottile/age](https://github.com/FiloSottile/age)
+
+Il est nécessaire d'installer cet utilitaire pour manipuler les clés.
+
+### Vérification
+
+Afin de vérifier que SOPS et AGE ont bien été installé lancer un terminal et vérifier les commandes suivantes 
+
+```bash
+c:\> sops -v
+sops 3.8.1 (latest)
+
+c:\> age-keygen
+# created: 2024-06-21T09:54:52+02:00
+# public key: age187tmnp3ydzv6wvdl47tyysnakmvpmXXXXXXXXX
+AGE-SECRET-KEY-10AR2NPHAYRN4NE4H2C5JUK0AM9NWW0XXXXXXXXXX  
+```
+La commande ci-dessus génère une paire de clé d'exemple qui n'est utilisée qu'à titre d'exemple.
+
+### Exemples
+
+Se placer dans le répertoire examples du repo.
+
+Créer une paire de clés :
+```bash
+c:\dev\exemples_ServiceTeam\secrets\sops\templates> age-keygen -o example-key.txt
+```
+
+Récupérer la clé public de la commande ci-dessus (soit dans la sortie standard, soit dans le fichier example-key.txt à l'emplacement de l'exécution de la commande)
+
+La clé publique débute par age, par exemple age187tmnp3ydzv6wvdl47tyysnakmvpmXXXXXXXXX.
+
+Exporter cette clé via la commande suivante :
+
+```bash
+$ AGE_KEY=age1c5jym99kxg6qcgkadnjhj4s5lu5sunr58n8uf5j38fcxvlch9eussxy79f
+$ echo $AGE_KEY
+age1c5jym99kxg6qcgkadnjhj4s5lu5sunr58n8uf5j38fcxvlch9eussxy79f
+```
+
+Chiffrer le fichier d'exemple via la commande suivante:
+
+```bash
+c:\dev\exemples_ServiceTeam\secrets\sops\templates>sops -e --age $AGE_KEY --encrypted-suffix Templates secret-file-test.yaml > secret-file-test.enc.yaml
+```
+
+Cette commande chiffre les entrées YAML  du fichier secret-file-test.yaml ayant le suffixe Templates et écrit le résultat dans le fichier secret-file-test.enc.yaml. A noter qu'il est nécessaire de conserver l'extension du fichier (d'où l'extension .enc.yaml).
+
+Le fichier chiffré doit ressembler à :
+
+```yaml
+apiVersion: isindir.github.com/v1alpha3
+kind: SopsSecret
+metadata:
+    name: mysecret-sops
+spec:
+    secretTemplates:
+        - name: ENC[AES256_GCM,data:jKvBNbnzzaqWX89vHAE=,iv:okRWxG4nPvMbcU94/I1boHScw6r4P0egl3C/HB8pjZQ=,tag:nIAOqeHIw0o54KMAXo2h6g==,type:str]
+          labels:
+            label1: ENC[AES256_GCM,data:I52cHxFmaCrIWKWMBQ==,iv:eItI5ulvabsx46HGe0G7NaUnXdULUK1IgW4qvmLUE7U=,tag:gV6dX3jrqlp+/PieoZVCkg==,type:str]
+          annotations:
+            key1: ENC[AES256_GCM,data:RF3Xvk8o4E52Gw==,iv:3pYYUAA5FUjYKGPgGuoUlhv/woGFe0bEBd6ktT/tREA=,tag:6Xfw+fUrSotl7bK7lwjZeg==,type:str]
+          stringData:
+            data-name0: ENC[AES256_GCM,data:36XMn7E0zwwb4AY=,iv:qj2c6nW7RxDSrC3E35VIvv89GV3crcdB3JQwivj4oPc=,tag:35/7rEZZMQwsyXuniRiEjQ==,type:str]
+          data:
+            data-name1: ENC[AES256_GCM,data:E89mimETlurhH6IqP4rPGA==,iv:3L6oZEbfCgb1mKLpfCqhBwixlWGqjWyFMLV9wahyKgM=,tag:eB9x9SQM/3BhEJeK0FWHHg==,type:str]
+        - name: ENC[AES256_GCM,data:2kFaFOY9aUtkGORbFw==,iv:FU0djNFYTT1MyDQ70w3hQxaAZGrLVojCd9cnNukF4xc=,tag:vnL8cHNGMATaOdj4p8q+8Q==,type:str]
+          stringData:
+            token: ENC[AES256_GCM,data:NQWj1h9OEVuDjRydon00Rg==,iv:JAgsq7MHc9/sTIPcy525BhXl/Srk9VRyjT6tXOuaxGo=,tag:ACHCD61XKdoWX/zgDPouEg==,type:str]
+        - name: ENC[AES256_GCM,data:SYtF1XlyqFOB/8v6,iv:l87LQBZWCG0mzTPr1WpG1cpFC9LU3i2U9/b3/0Y3op0=,tag:GxovUKk12prUuEc3tqnDGw==,type:str]
+          type: ENC[AES256_GCM,data:lxDTSxygsufiTrgQcMvYN1A+eOCw+ikb6E0RV10Y,iv:JRIcXr79HCcaLZiXKYe4HzBC/PMwmUlDRa6flzmJ90g=,tag:NfXBQxbFJbLcNPVXq1vi6w==,type:str]
+          stringData:
+            .dockerconfigjson: ENC[AES256_GCM,data:c9zJoM0gNFEGxGAi4884K72WY8p80VwhHzpT+ZP9l8ssq62xc3dPq5c/KQx603ctAlZpDJuPKnB3uIj2zqkFMBj9Ov1MRWsEONBE6AeNdnG/QUch0kSX4b7A/lY3HXyYMIT2/PD+YyItQQYjS+Un2Jy87tI=,iv:GdfAHu/6oXdysT9ezs7n31RTIwuS3RwCiOYgqv70uSY=,tag:uIbRuNsnuN9Fox6JqnwIKA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1c5jym99kxg6qcgkadnjhj4s5lu5sunr58n8uf5j38fcxvlch9eussxy79f
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIK1lqUExJamd1cmdVYjdi
+            SkpHYzNiOFVnZG8zTEsyY25mMThQK3liTURRCmd6U2h2SzE0ZFRvL2FiZ09PT09E
+            MlhSeVZJbkhZUjh5cHNVdTBJTnZwVFUKLS0tIHZLajBJQmRlOUlLZG14NTZvazVq
+            ZFdGbjVPb3N3MklUdnRZMGJJZVZoVUEKhtqGZ62vLBVyWfTnqVldnvppGEy37yUU
+            wBgMIivoRRCXeHVKdFru3ski3V2Q3M/y/yAIR0n3ybvbbVt1dhcjng==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-06-21T08:06:36Z"
+    mac: ENC[AES256_GCM,data:ops8RJZ7aKFLk8qvCcKxHYCw6TMlgb1Rdpv4qy6SoJM0Rz/TXAu9o33pXsIzWTAiFPc0Z3eBh0KpSFxWVbuJvz5uFIp0i/+aoVbNl4U8M6DFeYfnRY1U9lw/jR9tkBIVZk6OJUDCfavidG6qZmTZv5PBENfVAdlLy8EyBoqEIsY=,iv:uA6mxvukRFp66OzmkiuHb4UbcfGmQGLqq3A8dC1p9x8=,tag:DOxPrhoRHb5nUqqtZWclMA==,type:str]
+    pgp: []
+    encrypted_suffix: Templates
+    version: 3.8.1
+```
+
+Pour déchiffrer le fichier, il est nécessaire de préciser la clé privée soit :
+Dans la variable d'environnement **SOPS_AGE_KEY** soit en plaçant le fichier keys.txt dans son répertoire $HOME/sops/age/keys.txt  (%AppData%\sops\age\keys.txt sous windows) puis en exécutant la commande :
+
+```bash
+sops -d secrets/sops/examples/secret-file-test.enc.yaml
+```
+
+Enfin il est possible de chiffrer avec plusieurs clé (par exemple une clé pour le cluster de destination et une clé pour l'équipe de dev.) comme suit :
+
+```bash
+ AGE_KEY1=age1c5jym99kxg6qcgkadnjhj4s5lu5sunr58n8uf5j38fcxXXXXXXXXX
+ AGE_KEY2=age1z49g23u55m0jj8ptwv8xxavvtvpp8cjs4v76sl69jvfegtXXXXXXX
+sops -e --age $AGE_KEY1,$AGE_KEY2 --encrypted-suffix Templates secret-file-test.yaml
+```
+
+
+## Exemple d'intégration dans un projet
 Exemple d'arborescence permettant de gérer des secrets différents par plateforme/environnement.
 
 ```
