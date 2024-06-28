@@ -1,6 +1,6 @@
-# Monitoring
+# Code d'exemple
 
-Ce dépôt contient plusieurs exemples concernant le monitoring sur la plateforme Cloud-Pi.
+Ce dépôt contient plusieurs exemples de chart helm utilisable sur la plateforme Cloud-Pi Native.
 
 Résumé des exemples:
 ## Monitoring
@@ -13,5 +13,5 @@ Résumé des exemples:
 ## Secrets
 - [SOPS](secrets/sops/README.md): Gestion des secrets dans un chart helm via [SOPS](https://github.com/isindir/sops-secrets-operator)
 
-## Misc
+## Misc
 - [pull_images_from_harbor](/misc/pull_images_from_harbor/README.md): Utilisation du secret registry-pull-secret et de la propriété imagePullSecrets sur un déploiement
