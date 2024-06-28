@@ -13,3 +13,5 @@ Résumé des exemples:
 ## Secrets
 - [SOPS](secrets/sops/README.md): Gestion des secrets dans un chart helm via [SOPS](https://github.com/isindir/sops-secrets-operator)
 
+## Misc
+- [pull_images_from_harbor](/misc/pull_images_from_harbor/README.md): Utilisation du secret registry-pull-secret et de la propriété imagePullSecrets sur un déploiement
